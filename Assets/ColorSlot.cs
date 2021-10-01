@@ -37,13 +37,14 @@ public class ColorSlot : MonoBehaviour, IDragHandler, IEndDragHandler, IPointerC
     public void OnDrag(PointerEventData data)
     {
         itemImage.transform.SetParent(itemImage.canvasRenderer.transform);
-        itemImage.transform.position = Input.mousePosition;
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(itemImage.transform.parent.transform as RectTransform, Input.mousePosition, Camera.main, out Vector2 point);
+        itemImage.transform.localPosition = point;
     }
 
     public void OnEndDrag(PointerEventData data)
     {
         var raycastResult = RaycastMouse();
-        var target = raycastResult.Select(a => a.gameObject.GetComponent<PalleteMixer>()).Where(a => a != null).FirstOrDefault();
+        var target = GetPalleteMixerFromRay(raycastResult);
 
 
         if (target != null)
@@ -51,8 +52,20 @@ public class ColorSlot : MonoBehaviour, IDragHandler, IEndDragHandler, IPointerC
             target.AddColor(data.position, color);
         }
 
-        itemImage.transform.SetParent(this.transform);
-        itemImage.transform.localPosition = Vector3.zero;
+        ReturnImageToMyChild();
+
+
+
+        static PalleteMixer GetPalleteMixerFromRay(List<RaycastResult> raycastResult)
+        {
+            return raycastResult.Select(a => a.gameObject.GetComponent<PalleteMixer>()).Where(a => a != null).FirstOrDefault();
+        }
+
+        void ReturnImageToMyChild()
+        {
+            itemImage.transform.SetParent(this.transform);
+            itemImage.transform.localPosition = Vector3.zero;
+        }
     }
 
     //from: https://answers.unity.com/questions/1009987/detect-canvas-object-under-mouse-because-only-some.html?_ga=2.85083865.1727764624.1593864048-1629740874.1572570134

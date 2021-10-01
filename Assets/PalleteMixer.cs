@@ -17,15 +17,31 @@ public class PalleteMixer : MonoBehaviour
     RawImage img;
     Texture2D texture2D;
 
+    public enum MixMode { Substractive, Additive, Mean }
+    [SerializeField] MixMode mixMode;
+
+    RectTransform rt => transform as RectTransform;
     float colorBlobSize = 300;
+
+    Vector2 sizeInPixel, sizeInWorld;
+    Vector3 bottomLeft, topRight;
+
     // Start is called before the first frame update
     void Start()
     {
         img = GetComponent<RawImage>();
 
-        Vector2 size = GetScreenSize(img.GetComponent<RectTransform>());
+        sizeInPixel = GetScreenSizeInPixel(img.GetComponent<RectTransform>());
 
-        texture2D = new Texture2D((int)size.x, (int)size.y);
+        texture2D = new Texture2D((int)sizeInPixel.x, (int)sizeInPixel.y);
+
+
+        Vector3[] corners = new Vector3[4];
+        rt.GetWorldCorners(corners);
+
+        RectTransformUtility.ScreenPointToWorldPointInRectangle(rt, RectTransformUtility.WorldToScreenPoint(Camera.main, corners[0]), Camera.main, out bottomLeft);
+        RectTransformUtility.ScreenPointToWorldPointInRectangle(rt, RectTransformUtility.WorldToScreenPoint(Camera.main, corners[2]), Camera.main, out topRight);
+        sizeInWorld = topRight - bottomLeft;
 
         for (int x = 0; x < texture2D.width; x++)
         {
@@ -36,21 +52,29 @@ public class PalleteMixer : MonoBehaviour
         }
         texture2D.Apply();
         img.texture = texture2D;
+
+        Debug.Log(sizeInPixel);
+        Debug.Log(sizeInWorld);
+
+
     }
 
-    public void AddColor(Vector2 canvasPos, Color color)
+    public void AddColor(Vector2 mousePos, Color color)
     {
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(transform as RectTransform, canvasPos, null, out Vector2 localPos);
-        localPos += new Vector2(texture2D.width, texture2D.height) / 2;
-        Debug.Log(localPos);
+        RectTransformUtility.ScreenPointToWorldPointInRectangle(rt, mousePos, Camera.main, out Vector3 localPos);
+        
+        Vector2 pixelPos = localPos - bottomLeft;
+        pixelPos.x *= sizeInPixel.x / sizeInWorld.x;
+        pixelPos.y *= sizeInPixel.y / sizeInWorld.y;
 
-        colorPlacements.Add(new ColorBlob { c = color, place = localPos });
+
+        colorPlacements.Add(new ColorBlob { c = color, place = pixelPos });
 
         for (int x = 0; x < texture2D.width; x++)
         {
             for (int y = 0; y < texture2D.height; y++)
             {
-                Vector2 range = localPos - new Vector2(x, y);
+                Vector2 range = (Vector2)pixelPos - new Vector2(x, y);
                 if (range.sqrMagnitude < colorBlobSize && range.magnitude < colorBlobSize)
                 {
                     UpdatePixel(x, y);
@@ -61,11 +85,17 @@ public class PalleteMixer : MonoBehaviour
         img.texture = texture2D;
     }
 
-    public Color PickColor(Vector2 worldPos)
+    public Color PickColor(Vector2 mousePos)
     {
-        Vector2 localPos = transform.InverseTransformPoint(worldPos);
-        return texture2D.GetPixel((int)worldPos.x, (int)worldPos.y);
+        RectTransformUtility.ScreenPointToWorldPointInRectangle(rt, mousePos, Camera.main, out Vector3 localPos);
+
+        Vector2 pixelPos = localPos - bottomLeft;
+        pixelPos.x *= sizeInPixel.x / sizeInWorld.x;
+        pixelPos.y *= sizeInPixel.y / sizeInWorld.y;
+
+        return texture2D.GetPixel((int)pixelPos.x, (int)pixelPos.y);
     }
+
     void UpdatePixel(int x, int y)
     {
         float r, g, b;
@@ -87,12 +117,22 @@ public class PalleteMixer : MonoBehaviour
             }
         }
 
-        //mean
-        Color colm = new Color(1 - r / cnt, 1 - g / cnt, 1 - b / cnt);
-        //Substractive
-        Color cols = new Color(1 - r,1 - g, 1 - b);
-        
 
-        texture2D.SetPixel(x, y, cols);
+        switch (mixMode)
+        {
+            case MixMode.Substractive:
+                Color col_s = new Color(1 - r, 1 - g, 1 - b);
+                texture2D.SetPixel(x, y, col_s);
+                break;
+            case MixMode.Additive:
+                Color col_a = new Color(cnt - r, cnt - g, cnt - b);
+                texture2D.SetPixel(x, y, col_a);
+                break;
+            case MixMode.Mean:
+                Color col_m = new Color(1 - r / cnt, 1 - g / cnt, 1 - b / cnt);
+                texture2D.SetPixel(x, y, col_m);
+                break;
+        }
+        
     }
 }
