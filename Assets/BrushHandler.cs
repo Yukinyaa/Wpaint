@@ -15,6 +15,8 @@ public class BrushHandler : MonoBehaviour
 
     [SerializeField]
     Image brushImage;
+    TrailRenderer tr;
+
     bool isDrawing;
     Color currentColor;
 
@@ -23,7 +25,7 @@ public class BrushHandler : MonoBehaviour
 
     public void Start()
     {
-
+        tr = brushImage.GetComponent<TrailRenderer>();
     }
 
     void Update()
@@ -40,16 +42,27 @@ public class BrushHandler : MonoBehaviour
             {
                 currentColor = palleteMixer.PickColor(mousepos);
                 brushImage.color = currentColor;
+
+                tr.material.color = currentColor;
+                Gradient gradient = new Gradient() { 
+                    alphaKeys = new GradientAlphaKey[]{new GradientAlphaKey(1,0), new GradientAlphaKey(1, 1) },
+                    colorKeys = new GradientColorKey[]{new GradientColorKey(currentColor, 0), new GradientColorKey(currentColor, 1)},
+                    mode = GradientMode.Fixed
+                };
+
+                tr.colorGradient = gradient;
             }
             else if (raycastResult.Exists(a => a.gameObject.GetComponent<ColorSlot>() != null)) ;
             else
             {
+                tr.enabled = true;
                 isDrawing = true;
             }
 
         }
         else if (Input.GetMouseButtonUp(0))
         {
+            tr.enabled = false;
             isDrawing = false;
         }
 

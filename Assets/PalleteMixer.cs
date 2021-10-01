@@ -21,7 +21,7 @@ public class PalleteMixer : MonoBehaviour
     [SerializeField] MixMode mixMode;
 
     RectTransform rt => transform as RectTransform;
-    float colorBlobSize = 300;
+    public float colorBlobSize = 300;
 
     Vector2 sizeInPixel, sizeInWorld;
     Vector3 bottomLeft, topRight;
@@ -58,6 +58,29 @@ public class PalleteMixer : MonoBehaviour
 
 
     }
+
+    MixMode prevMixMode;
+
+    private void Update()
+    {
+        if (prevMixMode != mixMode)
+        {
+            prevMixMode = mixMode;
+
+
+            for (int x = 0; x < texture2D.width; x++)
+            {
+                for (int y = 0; y < texture2D.height; y++)
+                {
+                    UpdatePixel(x, y);
+                }
+            }
+
+            texture2D.Apply();
+            img.texture = texture2D;
+        }
+    }
+
 
     public void AddColor(Vector2 mousePos, Color color)
     {
@@ -117,6 +140,12 @@ public class PalleteMixer : MonoBehaviour
             }
         }
 
+        if (cnt == 0)
+        {
+            texture2D.SetPixel(x, y, new Color(1, 1, 1, 0));
+            return;
+        }
+        
 
         switch (mixMode)
         {
