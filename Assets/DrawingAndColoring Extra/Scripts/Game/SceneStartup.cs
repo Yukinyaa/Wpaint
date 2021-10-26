@@ -21,9 +21,9 @@ namespace IndieStudio.DrawingAndColoring.Logic
 			public void ShowAd ()
 			{
 					if (SceneManager.GetActiveScene().name == "Album") {
-						AdsManager.instance.ShowAdvertisment (AdPackage.AdEvent.Event.ON_LOAD_ALBUM_SCENE);
+						//AdsManager.instance.ShowAdvertisment (AdPackage.AdEvent.Event.ON_LOAD_ALBUM_SCENE);
 					} else if (SceneManager.GetActiveScene().name == "Game") {
-						AdsManager.instance.ShowAdvertisment (AdPackage.AdEvent.Event.ON_LOAD_GAME_SCENE);
+						//AdsManager.instance.ShowAdvertisment (AdPackage.AdEvent.Event.ON_LOAD_GAME_SCENE);
 					} 
 			}
 			

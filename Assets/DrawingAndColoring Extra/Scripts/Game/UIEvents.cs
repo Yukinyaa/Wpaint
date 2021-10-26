@@ -222,7 +222,7 @@ namespace IndieStudio.DrawingAndColoring.Logic
 
 		public void LoadGameScene ()
 		{
-			StartCoroutine (LoadSceneAsync("Game"));
+			StartCoroutine (LoadSceneAsync("MainScene"));
 		}
 
 		public void LeaveApp(){

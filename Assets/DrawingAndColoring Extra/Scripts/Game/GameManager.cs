@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
 using IndieStudio.DrawingAndColoring.Utility;
+using System.Linq;
 
 ///Developed by Indie Studio
 ///https://assetstore.unity.com/publishers/9268
@@ -217,10 +218,34 @@ namespace IndieStudio.DrawingAndColoring.Logic
 			}
 		}
 
-		/// <summary>
-		/// Handle the user input.
-		/// </summary>
-		private void HandleInput(){
+        internal void SetToolColor(Color color)
+        {
+            Gradient newColor = new Gradient();
+            
+            var alphaKeys = currentToolContent.gradientColor.alphaKeys;
+            List<GradientColorKey> colorKeys =new List<GradientColorKey>();
+            foreach(var akey in newColor.alphaKeys)
+            {
+                GradientColorKey ckey;
+                ckey.color = color;
+                ckey.time = akey.time;
+                colorKeys.Add(ckey);
+            }
+            newColor.SetKeys(colorKeys.ToArray(), alphaKeys);
+            currentToolContent.gradientColor = newColor;
+
+
+            if (currentToolContent != null)
+            {
+                ShapesCanvas.shapeOrder.color = currentToolContent.gradientColor.colorKeys[0].color;
+            }
+            ChangeThicknessSizeColor();
+        }
+
+        /// <summary>
+        /// Handle the user input.
+        /// </summary>
+        private void HandleInput(){
 
 			if (!Application.isMobilePlatform) {//current platform is not mobile
 				if (Input.GetKeyDown (KeyCode.RightArrow)) {
@@ -451,8 +476,11 @@ namespace IndieStudio.DrawingAndColoring.Logic
 
 			//Get sprite renderer component
 			SpriteRenderer sr = stamp.GetComponent<SpriteRenderer>();
+            
+            //Set stamp color to certain color
+            sr.color = currentToolContent.gradientColor.Evaluate(0.5f);
 
-			if (sr != null) {
+            if (sr != null) {
 				if(currentTool.audioClip!=null && AudioSources.instance!=null)
 					AudioSources.instance.SFXAudioSource().PlayOneShot(currentTool.audioClip);//play Tool audio clip
 
@@ -794,8 +822,9 @@ namespace IndieStudio.DrawingAndColoring.Logic
 			}
 
 			currentToolContent.DisableSelection ();
-
-			currentToolContent = content;
+            var gColor = currentToolContent.gradientColor;
+            currentToolContent = content;
+            content.gradientColor = gColor;
 			if (!currentTool.useAsCursor)
 				currentCursorSprite = content.GetComponent<Image> ().sprite;
 

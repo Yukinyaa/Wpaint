@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
+using UnityEngine.EventSystems;
+
 using static StaticFunc;
 
 [RequireComponent(typeof(RawImage))]
-public class PalleteMixer : MonoBehaviour
+public class PalleteMixer : MonoBehaviour, IPointerClickHandler
 {
     struct ColorBlob
     {
@@ -66,21 +68,23 @@ public class PalleteMixer : MonoBehaviour
         if (prevMixMode != mixMode)
         {
             prevMixMode = mixMode;
-
-
-            for (int x = 0; x < texture2D.width; x++)
-            {
-                for (int y = 0; y < texture2D.height; y++)
-                {
-                    UpdatePixel(x, y);
-                }
-            }
-
-            texture2D.Apply();
-            img.texture = texture2D;
+            ForceUpdatePixels();
         }
     }
 
+    private void ForceUpdatePixels()
+    {
+        for (int x = 0; x < texture2D.width; x++)
+        {
+            for (int y = 0; y < texture2D.height; y++)
+            {
+                UpdatePixel(x, y);
+            }
+        }
+
+        texture2D.Apply();
+        img.texture = texture2D;
+    }
 
     public void AddColor(Vector2 mousePos, Color color)
     {
@@ -163,5 +167,10 @@ public class PalleteMixer : MonoBehaviour
                 break;
         }
         
+    }
+
+    void IPointerClickHandler.OnPointerClick(PointerEventData eventData)
+    {
+        FindObjectOfType<IndieStudio.DrawingAndColoring.Logic.GameManager>().SetToolColor(PickColor(eventData.position));
     }
 }
