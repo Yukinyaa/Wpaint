@@ -13,33 +13,45 @@ using UnityEngine.Profiling;
 [RequireComponent(typeof(RawImage))]
 public class PalleteMixer : MonoBehaviour, IBeginDragHandler, IEndDragHandler, IDragHandler, IPointerExitHandler, IPointerDownHandler
 {
+    const int ClipAlphaPass = 0;
+    const int BlurPass = 1;
+    const int CustomSubtractivePass = 2;
+    const int CustomAdditivePass = 3;
+    const int AlphaClippingPass = 4;
+    const int ColorAddingPass = 5;
+
     [SerializeField] float _superSampleRatio = 2;
+    [SerializeField] Texture2D img;
+
+
+
+
     RawImage _img;
-    
+
+
+    public Shader avgBloomShader;
 
     public float paintBlobSize = 300;
     public float paintBlobAmount = 10;
     public float paintSpreadSpeed = 0.1f;
+
     public int PaintBlobSize => (int)(paintBlobSize * _superSampleRatio);
     public float PaintBlobAmount => paintBlobAmount;
+
     public int PaintBlobOutlinePixelCount => PaintBlobSize * 4 - 4;
     public float AlphaMultiplier = 1;
 
     RectTransform RT => transform as RectTransform;
 
-    int2  _sizeInPixel;
+    int2 _sizeInPixel;
     Vector2 _sizeInWorld;
     Vector3 _bottomLeft, _topRight;
+    RenderTexture _texture;
+    RenderTexture _texture_rendering;
+    RenderTexture fuck;
 
-    float[,] _colorWeight;
-    float[,] _colorWeightBuffer;
-    MColor[,] _colors;
-    MColor[,] _colorsBuffer;
-    Color[] _flattenedColors;
-    Texture2D _texture2D;
-
-    struct MColor 
-    { 
+    struct MColor
+    {
         public float r, g, b, a;
         public MColor(float r, float g, float b, float a)
         {
@@ -54,6 +66,22 @@ public class PalleteMixer : MonoBehaviour, IBeginDragHandler, IEndDragHandler, I
         }
     }
 
+    public RenderTexture GetNewRenderTexture()
+    {
+        RenderTexture texture;
+        if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.ARGBFloat))
+            texture = RenderTexture.GetTemporary(_sizeInPixel.x, _sizeInPixel.y, 0, RenderTextureFormat.ARGBFloat);
+        else if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.ARGB64))
+            texture = RenderTexture.GetTemporary(_sizeInPixel.x, _sizeInPixel.y, 0, RenderTextureFormat.ARGBFloat);
+        else
+            texture = RenderTexture.GetTemporary(_sizeInPixel.x, _sizeInPixel.y, 0);
+
+        texture.antiAliasing = 1;
+        UnityEngine.RenderTexture.active = texture;
+        GL.Clear(true, true, new Color(1,1,1,0));
+
+        return texture;
+    }
 
 
     // Start is called before the first frame update
@@ -64,14 +92,8 @@ public class PalleteMixer : MonoBehaviour, IBeginDragHandler, IEndDragHandler, I
         var sizeInPixelf = GetScreenSizeInPixel(_img.GetComponent<RectTransform>()) * _superSampleRatio;
         _sizeInPixel = new int2((int)sizeInPixelf.x, (int)sizeInPixelf.y);
 
-        _texture2D = new Texture2D(_sizeInPixel.x, _sizeInPixel.y);
-        _colors = new MColor[_sizeInPixel.x, _sizeInPixel.y];
-        _colorWeight = new float[_sizeInPixel.x, _sizeInPixel.y];
-
-        _colorsBuffer = new MColor[_sizeInPixel.x, _sizeInPixel.y];
-        _colorWeightBuffer = new float[(int)_sizeInPixel.x, (int)_sizeInPixel.y];
-
-        _flattenedColors = new Color[_sizeInPixel.x * _sizeInPixel.y];
+        _texture_rendering = GetNewRenderTexture();
+        _texture = GetNewRenderTexture();
 
         Vector3[] corners = new Vector3[4];
         RT.GetWorldCorners(corners);
@@ -81,7 +103,7 @@ public class PalleteMixer : MonoBehaviour, IBeginDragHandler, IEndDragHandler, I
 
         Debug.Log($"Dimension:{ _sizeInPixel }");
         _sizeInWorld = _topRight - _bottomLeft;
-        
+
         //for (int x = 0; x < _sizeInPixel.x; x++)
         //{
         //    for (int y = 0; y < _sizeInPixel.y; y++)
@@ -94,86 +116,97 @@ public class PalleteMixer : MonoBehaviour, IBeginDragHandler, IEndDragHandler, I
         //}
     }
 
-    
+
+    //[SerializeField]
+    Material mat;
+
+    [SerializeField]
+    RawImage DBGIMG;
+
+    public void SetDBGImage(RenderTexture img)
+    {
+        fuck?.Release();
+        fuck = GetNewRenderTexture();
+        Graphics.CopyTexture(img, fuck);
+        DBGIMG.texture = fuck;
+    }
 
     public void LateUpdate()
     {
-        Profiler.BeginSample("Spread");
-        for (int y = 0; y < _sizeInPixel.y; y++)
+        SpriteRenderer r;
+        if (mat == null)
         {
-            for (int x = 0; x < _sizeInPixel.x; x++)
-            {
-                _colorsBuffer[x, y] = _colors[x, y];
-                _colorWeightBuffer[x, y] = 0;
-                float w;
-
-                if (_colorWeight[x, y] > 2)
-                {
-                    _colorWeightBuffer[x, y] = _colorWeight[x, y] * (1f - paintSpreadSpeed * Time.deltaTime);
-                }
-                else
-                {
-                    _colorWeightBuffer[x, y] = _colorWeight[x, y];
-                }
-
-                for (int i = 0;i < 4;++i)
-                {
-                    int2 p;
-                    switch (i)
-                    {
-                        default:
-                        case 0:
-                            p = new int2(x, y + 1);
-                            break;
-                        case 1:
-                            p = new int2(x, y - 1);
-                            break;
-                        case 2:
-                            p = new int2(x + 1, y);
-                            break;
-                        case 3:
-                            p = new int2(x - 1, y);
-                            break;
-                    }
-                    if (IsPointInT2DRange(p) == false)
-                        continue;
-                    if (_colorWeightBuffer[p.x, p.y] > 2)
-                        MixColorToBuffer(_colorsBuffer[p.x, p.y], _colorWeightBuffer[p.x, p.y] * paintSpreadSpeed * Time.deltaTime, x, y);
-                    else
-                        MixColorToBuffer(_colorsBuffer[p.x, p.y], _colorWeightBuffer[p.x, p.y] * (1f - paintSpreadSpeed * Time.deltaTime), x, y);
-                }
-                if ((w = _colorWeightBuffer[x, y]) < AlphaMultiplier)
-                _colors[x, y].a = w / AlphaMultiplier;
-                _flattenedColors[x + y * _sizeInPixel.x] = _colorsBuffer[x, y];
-            }
+            mat = new Material(avgBloomShader);
+            mat.hideFlags = HideFlags.HideAndDontSave;
         }
-        Profiler.EndSample();
+        bool justAdded = false;
+        if (_addColor)
+        {
+            justAdded = true;
+            mat.SetTexture("_MainTex", img);
+            RenderTexture tex_source = _texture;
+            mat.SetColor("_addColor", _addColorCol);
+            mat.SetVector("_addColor_pos", _addColorTo);
+            Debug.Log(_addColorTo);
+
+            
+            RenderTexture tex_dest = GetNewRenderTexture();
+
+            Graphics.Blit(tex_source, tex_dest, mat, 5);
+            Debug.Log("blit");
+            tex_source.Release();
+            _addColor = false;
+
+            _texture = tex_dest;
+        }
+
+        RenderTexture rt = UnityEngine.RenderTexture.active;
+
+        RenderTexture alpha = GetNewRenderTexture();
+        RenderTexture blur = GetNewRenderTexture();
+
+
+        mat.SetTexture("_SourceTex", _texture);
+
+        Graphics.Blit(_texture, alpha, mat, ClipAlphaPass);
 
 
 
-        //commit
-        Swap(ref _colorsBuffer, ref _colors);
-        Swap(ref _colorWeightBuffer, ref _colorWeight);
+        Graphics.Blit(alpha, blur, mat, BlurPass);
 
-        Profiler.BeginSample("Apply");
-        _texture2D.SetPixels(_flattenedColors);
-        _texture2D.Apply();
-        _img.texture = _texture2D;
-        Profiler.EndSample();
 
+        RenderTexture tex_sub = GetNewRenderTexture();
+        RenderTexture tex_add = GetNewRenderTexture();
+
+
+        mat.SetTexture("_SourceTex", _texture );
+        Graphics.Blit(alpha, tex_sub, mat, CustomSubtractivePass);
+
+        if (justAdded)
+            SetDBGImage(tex_sub);
+
+
+        _texture.Release(); alpha.Release();
+
+        mat.SetTexture("_SourceTex", tex_sub);
+        Graphics.Blit(blur, tex_add, mat, 3);
+
+
+        blur.Release(); tex_sub.Release();
+
+        _texture = tex_add;
+        _texture_rendering.Release();
+        _texture_rendering = GetNewRenderTexture();
+
+        Graphics.Blit(_texture, _texture_rendering, mat, 4);
+
+
+        _img.texture = _texture_rendering;
+        
     }
-
-    void MixColorToBuffer(MColor c, float cw, int x, int y)
-    {
-        MColor oCol = _colorsBuffer[x, y];
-        float oW = _colorWeightBuffer[x, y];
-
-        MixColor(c, cw, oCol, oW, out oCol, out oW);
-
-        _colorWeightBuffer[x, y] = oW;
-        _colorsBuffer[x, y] = oCol;
-    }
-
+    bool _addColor = false;
+    Vector2 _addColorTo;
+    Color _addColorCol;
     public void AddColor(Vector2 mousePos, Color color_)
     {
         MColor color = new MColor(color_.r, color_.g, color_.b, color_.a);
@@ -181,32 +214,9 @@ public class PalleteMixer : MonoBehaviour, IBeginDragHandler, IEndDragHandler, I
 
         int2 pixelPos = MousePosToPixelpos(mousePos);
 
-        MColor mixedColor = new MColor();
-        float mixedColorw = 0;
-
-        int2 t2dDimension = _sizeInPixel;
-
-        for (int x = 0; x < t2dDimension.x; x++)
-        {
-            for (int y = 0; y < t2dDimension.y; y++)
-            {
-                int2 range = pixelPos - new int2(x, y);
-                float magnitude;
-                if (range.Max() < PaintBlobSize && (magnitude = range.Magnitude()) < PaintBlobSize)
-                {
-                    MixColor(mixedColor, mixedColorw, _colors[x, y], _colorWeight[x, y], out mixedColor, out mixedColorw);
-                    _colorWeight[x, y] = magnitude / PaintBlobSize * PaintBlobAmount;
-                    _colors[x, y] = color;
-                }
-            }
-        }
-        foreach(int2 p in CircleOutlinePoints(pixelPos, PaintBlobSize))
-        {
-            if (IsPointInT2DRange(p) == false)
-                continue;
-            _colorWeight[p.x, p.y] = mixedColorw / PaintBlobOutlinePixelCount;
-            _colors[p.x, p.y] = mixedColor;
-        }
+        _addColor = true;
+        _addColorTo = new Vector2(pixelPos.x /(float)_sizeInPixel.x, pixelPos.y / (float)_sizeInPixel.y);
+        _addColorCol = color_;
     }
 
     public bool IsPointInT2DRange(int2 p)
@@ -218,7 +228,11 @@ public class PalleteMixer : MonoBehaviour, IBeginDragHandler, IEndDragHandler, I
     public Color PickColor(Vector2 mousePos)
     {
         int2 pixelPos = MousePosToPixelpos(mousePos);
-        return _colors[pixelPos.x, pixelPos.y];
+        Texture2D texture = new Texture2D(_sizeInPixel.x, _sizeInPixel.y);
+        RenderTexture.active = _texture;
+        texture.ReadPixels(new Rect(0, 0, _sizeInPixel.x, _sizeInPixel.y), 0, 0);
+        _img.texture = texture;
+        return texture.GetPixel(pixelPos.x,pixelPos.y);
     }
 
     public int2 MousePosToPixelpos(Vector2 mousePos)
