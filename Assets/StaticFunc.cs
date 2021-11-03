@@ -41,8 +41,8 @@ public static class StaticFunc
 
     public static bool AABBPoint(int2 minSqr, int2 maxSqr, int2 point)
     {
-        if (point.x > minSqr.x || maxSqr.x > point.x) return false;
-        if (point.y > minSqr.y || maxSqr.y > point.y) return false;
+        if (point.x < minSqr.x || maxSqr.x < point.x) return false;
+        if (point.y < minSqr.y || maxSqr.y < point.y) return false;
         return true;
     }
 

@@ -227,12 +227,25 @@ public class PalleteMixer : MonoBehaviour, IBeginDragHandler, IEndDragHandler, I
 
     public Color PickColor(Vector2 mousePos)
     {
+        
         int2 pixelPos = MousePosToPixelpos(mousePos);
-        Texture2D texture = new Texture2D(_sizeInPixel.x, _sizeInPixel.y);
+        if (!AABBPoint(int2.zero, _sizeInPixel, pixelPos))
+            return Color.clear;
+
+
+        UnityEngine.Profiling.Profiler.BeginSample(">>>tlqkf<<<");
+        Texture2D texture = new Texture2D(1,1);
+        
         RenderTexture.active = _texture;
-        texture.ReadPixels(new Rect(0, 0, _sizeInPixel.x, _sizeInPixel.y), 0, 0);
-        _img.texture = texture;
-        return texture.GetPixel(pixelPos.x,pixelPos.y);
+
+        
+        texture.ReadPixels(new Rect(pixelPos.x, _sizeInPixel.y-pixelPos.y, 1,1), 0, 0);
+        
+        Color color = texture.GetPixel(0, 0);
+        Debug.Log($"{color}  {pixelPos}");
+        Destroy(texture);
+        UnityEngine.Profiling.Profiler.EndSample();
+        return color;
     }
 
     public int2 MousePosToPixelpos(Vector2 mousePos)
@@ -269,7 +282,7 @@ public class PalleteMixer : MonoBehaviour, IBeginDragHandler, IEndDragHandler, I
     {
         FindObjectOfType<IndieStudio.DrawingAndColoring.Logic.GameManager>().SetToolColor(PickColor(eventData.position));
         
-        var pixelPos = MousePosToPixelpos(eventData.position);
+        var pixelPos = MousePosToPixelpos(Input.mousePosition);
         
 
         if (_isDragging)
@@ -302,18 +315,5 @@ public class PalleteMixer : MonoBehaviour, IBeginDragHandler, IEndDragHandler, I
     {
         _isDragging = false;
         _lastImgPos = Vector2.zero;
-    }
-
-
-
-    static void MixColor(MColor a, float aw, MColor b, float bw, out MColor outc, out float outw)
-    {
-        outw = aw * bw;
-
-        outc.r = a.r * aw + b.r * bw / outw;
-        outc.g = a.g * aw + b.g * bw / outw;
-        outc.b = a.b * aw + b.b * bw / outw;
-
-        outc.a = 1;
     }
 }
