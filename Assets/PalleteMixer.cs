@@ -229,7 +229,7 @@ public class PalleteMixer : MonoBehaviour, IBeginDragHandler, IEndDragHandler, I
     {
         
         int2 pixelPos = MousePosToPixelpos(mousePos);
-        if (!AABBPoint(int2.zero, _sizeInPixel, pixelPos))
+        if (!AABBPoint(int2.zero, _sizeInPixel - new int2(1, 1), pixelPos))
             return Color.clear;
 
 
@@ -239,10 +239,10 @@ public class PalleteMixer : MonoBehaviour, IBeginDragHandler, IEndDragHandler, I
         RenderTexture.active = _texture;
 
         
-        texture.ReadPixels(new Rect(pixelPos.x, _sizeInPixel.y-pixelPos.y, 1,1), 0, 0);
+        texture.ReadPixels(new Rect(pixelPos.x, _sizeInPixel.y - pixelPos.y, 1,1), 0, 0);
         
         Color color = texture.GetPixel(0, 0);
-        Debug.Log($"{color}  {pixelPos}");
+        //Debug.Log($"{color}  {pixelPos}");
         Destroy(texture);
         UnityEngine.Profiling.Profiler.EndSample();
         return color;

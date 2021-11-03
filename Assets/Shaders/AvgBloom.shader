@@ -48,8 +48,8 @@ Shader "Custom/AvgBloom" {
 	half4 MAdd(half4 a, half4 b)
 	{
 		half4 c;
-		if      (a.a < 0.01) return b;
-		else if (b.a < 0.01) return a;
+		if      (a.a < 0.0001) return b;
+		else if (b.a < 0.0001) return a;
 
 		half alphaSum = (a.a + b.a);
 
@@ -94,7 +94,7 @@ Shader "Custom/AvgBloom" {
 
 					half4 FragmentProgram(Interpolators i) : SV_Target {
 						half4 c = Sample(i.uv);
-						if (c.a > 0.3)
+						if (c.a > 0.03)
 						{
 							c.a /= 2;
 							return c;
@@ -150,7 +150,7 @@ Shader "Custom/AvgBloom" {
 
 					half4 FragmentProgram(Interpolators i) : SV_Target {
 						half4 a = Sample(i.uv);
-						a.a = (a.a * 5 > 1) ? 1 : a.a * 5;
+						a.a = (a.a * 50 > 1) ? 1 : a.a * 50;
 						return a;
 					}
 				ENDCG
@@ -168,7 +168,9 @@ Shader "Custom/AvgBloom" {
 						else return Sample(i.uv);
 
 						float c = IsInCircle(i.uv, _addColor_pos.xy, _blobSize);
-						
+
+						_addColor.a = 0.1;
+
 						if (c > 0)
 							return _addColor;
 						else return Sample(i.uv);
@@ -181,8 +183,15 @@ Shader "Custom/AvgBloom" {
 					#pragma vertex VertexProgram
 					#pragma fragment FragmentProgram
 
-
+					float PaintToKeep(float amt)
+					{
+						float r = amt / 5;
+						return r < 0.01 ? MIN(amt, 0.01) : r;
+					}
 					half4 FragmentProgram(Interpolators i) : SV_Target {
+						float k = 0.314/60;
+						float2x2 rotationMatrix = float2x2(cos(k), -sin(k), sin(k), cos(k));
+
 						float2 crclSize = _MainTex_TexelSize.xx / _MainTex_TexelSize.xy;
 
 						float2 from = (i.uv - _dspl_from.xy) * crclSize;
@@ -191,13 +200,14 @@ Shader "Custom/AvgBloom" {
 						half4 c = Sample(i.uv);
 
 						if (length(from.xy) < _dspl_brush_size)
-							c.a = MIN(c.a / 2, 0.1);
+							c.a = PaintToKeep(c.a);
 
 
 						if (length(to.xy) < _dspl_brush_size)
 						{
-							half4 otherColor = Sample(i.uv + _dspl_from.xy - _dspl_to.xy);
-							otherColor.a = otherColor.a -  MIN(otherColor.a / 2, 0.1);
+							half4 otherColor = Sample(mul((i.uv - _dspl_to.xy), rotationMatrix) + _dspl_from.xy);
+							otherColor.a -= PaintToKeep(otherColor.a);
+							otherColor.a = MAX(otherColor.a, 0);
 							return MAdd(c, otherColor);
 						}
 						else
