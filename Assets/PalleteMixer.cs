@@ -21,8 +21,6 @@ public class PalleteMixer : MonoBehaviour, IBeginDragHandler, IEndDragHandler, I
     const int ColorAddingPass = 5;
 
     [SerializeField] float _superSampleRatio = 2;
-    [SerializeField] Texture2D img;
-
 
 
 
@@ -125,7 +123,7 @@ public class PalleteMixer : MonoBehaviour, IBeginDragHandler, IEndDragHandler, I
 
     public void SetDBGImage(RenderTexture img)
     {
-        fuck?.Release();
+        fuck?.ReleaseTemp();
         fuck = GetNewRenderTexture();
         Graphics.CopyTexture(img, fuck);
         DBGIMG.texture = fuck;
@@ -143,18 +141,20 @@ public class PalleteMixer : MonoBehaviour, IBeginDragHandler, IEndDragHandler, I
         if (_addColor)
         {
             justAdded = true;
-            mat.SetTexture("_MainTex", img);
             RenderTexture tex_source = _texture;
             mat.SetColor("_addColor", _addColorCol);
             mat.SetVector("_addColor_pos", _addColorTo);
             Debug.Log(_addColorTo);
 
-            
+            mat.SetFloat("_blobSize", 0.1f);
+            mat.SetFloat("_dspl_brush_size", 0.1f);
+
+
             RenderTexture tex_dest = GetNewRenderTexture();
 
             Graphics.Blit(tex_source, tex_dest, mat, 5);
             Debug.Log("blit");
-            tex_source.Release();
+            tex_source.ReleaseTemp();
             _addColor = false;
 
             _texture = tex_dest;
@@ -186,16 +186,16 @@ public class PalleteMixer : MonoBehaviour, IBeginDragHandler, IEndDragHandler, I
             SetDBGImage(tex_sub);
 
 
-        _texture.Release(); alpha.Release();
+        _texture.ReleaseTemp(); alpha.ReleaseTemp();
 
         mat.SetTexture("_SourceTex", tex_sub);
         Graphics.Blit(blur, tex_add, mat, 3);
 
 
-        blur.Release(); tex_sub.Release();
+        blur.ReleaseTemp(); tex_sub.ReleaseTemp();
 
         _texture = tex_add;
-        _texture_rendering.Release();
+        _texture_rendering.ReleaseTemp();
         _texture_rendering = GetNewRenderTexture();
 
         Graphics.Blit(_texture, _texture_rendering, mat, 4);
@@ -255,6 +255,7 @@ public class PalleteMixer : MonoBehaviour, IBeginDragHandler, IEndDragHandler, I
     void IEndDragHandler.OnEndDrag(PointerEventData eventData)
     {
         _isDragging = false;
+        _lastImgPos = Vector2.zero;
     }
 
     void IPointerDownHandler.OnPointerDown(PointerEventData eventData)
@@ -263,19 +264,44 @@ public class PalleteMixer : MonoBehaviour, IBeginDragHandler, IEndDragHandler, I
     }
 
 
-    Vector2 _lastPixelPos;
+    Vector2 _lastImgPos;
     void IDragHandler.OnDrag(PointerEventData eventData)
     {
         FindObjectOfType<IndieStudio.DrawingAndColoring.Logic.GameManager>().SetToolColor(PickColor(eventData.position));
+        
+        var pixelPos = MousePosToPixelpos(eventData.position);
+        
+
         if (_isDragging)
         {
-            Debug.Log("Draggin");
+            
+            var tex_source = _texture;
+            var ImgPos = new Vector2(pixelPos.x / (float)_sizeInPixel.x, pixelPos.y / (float)_sizeInPixel.y);
+            mat.SetVector("_dspl_from", _lastImgPos);
+            mat.SetVector("_dspl_to", ImgPos);
+            if (_lastImgPos == Vector2.zero)
+            {
+                _lastImgPos = ImgPos;
+                return;
+            }
+            
+
+            _lastImgPos = ImgPos;
+
+            RenderTexture tex_dest = GetNewRenderTexture();
+
+            Graphics.Blit(tex_source, tex_dest, mat, 6);
+            tex_source.ReleaseTemp();
+            _addColor = false;
+
+            _texture = tex_dest;
         }
     }
 
     void IPointerExitHandler.OnPointerExit(PointerEventData eventData)
     {
         _isDragging = false;
+        _lastImgPos = Vector2.zero;
     }
 
 

@@ -9,6 +9,7 @@ using UnityEngine.UI;
 
 public static class StaticFunc
 {
+    public static void ReleaseTemp(this RenderTexture self) { RenderTexture.ReleaseTemporary(self); }
     public static Vector2 GetScreenSizeInPixel(RectTransform rt)
     {
         Vector3[] v = new Vector3[4];

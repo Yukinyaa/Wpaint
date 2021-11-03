@@ -5,6 +5,8 @@ Shader "Custom/AvgBloom" {
 
 		CGINCLUDE
 #include "UnityCG.cginc"
+#define MAX(a,b) ((a) > (b) ? (a) : (b))
+#define MIN(a,b) ((a) < (b) ? (a) : (b))
 
 	sampler2D _MainTex, _SourceTex;
 	float4 _MainTex_TexelSize;
@@ -12,6 +14,14 @@ Shader "Custom/AvgBloom" {
 
 	float4 _addColor_pos;
 	half4 _addColor;
+	float2 _blobSize;
+	
+	float _dspl_brush_size;
+	float2 _dspl_from;
+	float2 _dspl_to;
+	
+	float2 _rmvMat_pos;
+
 
 	struct VertexData {
 		float4 vertex : POSITION;
@@ -60,6 +70,13 @@ Shader "Custom/AvgBloom" {
 		);
 		c.a /= 4;
 		return c;
+	}
+	float IsInCircle(float2 uv, float2 pointInPixel, float size){
+		float circlep = distance(uv, pointInPixel) / size;
+		if(circlep <= 1)
+			return circlep;
+		else return -1;
+	
 	}
 
 
@@ -126,39 +143,69 @@ Shader "Custom/AvgBloom" {
 					}
 				ENDCG
 			}
-			Pass { // 4 alpha clipping
+			Pass { // 4 alpha multiplication/clipping
 				CGPROGRAM
 					#pragma vertex VertexProgram
 					#pragma fragment FragmentProgram
 
 					half4 FragmentProgram(Interpolators i) : SV_Target {
 						half4 a = Sample(i.uv);
-						a.a = (a.a * 10 > 1) ? 1: a.a * 10;
+						a.a = (a.a * 5 > 1) ? 1 : a.a * 5;
 						return a;
 					}
 				ENDCG
 			}
-			Pass { // 5 color shit
+			Pass { // 5 add paint
 				CGPROGRAM
 					#pragma vertex VertexProgram
 					#pragma fragment FragmentProgram
 
 					half4 FragmentProgram(Interpolators i) : SV_Target {
-						float2 crclSize = _MainTex_TexelSize.xy / _SourceTex_TexelSize.xy;
-						float2 crclPos = (i.uv - _addColor_pos.xy) / crclSize;
+						float2 crclSize = _MainTex_TexelSize.xx / _MainTex_TexelSize.xy;
+						float2 crclPos = (i.uv - _addColor_pos.xy) * crclSize;
 
-						if (abs(crclPos.x) + abs(crclPos.y) < 0.1) return _addColor;
+						if (length(crclPos.xy) < 0.1) return _addColor;
 						else return Sample(i.uv);
-					/*
 
-						half4 c = tex2D(_SourceTex, i.uv);//; +_addColor;
-						if (c.a = 0) c = Sample(i.uv);
-						return c;
-					*/
+						float c = IsInCircle(i.uv, _addColor_pos.xy, _blobSize);
+						
+						if (c > 0)
+							return _addColor;
+						else return Sample(i.uv);
 						
 					}
 				ENDCG
 			}
+			Pass { // 6 displacement
+				CGPROGRAM
+					#pragma vertex VertexProgram
+					#pragma fragment FragmentProgram
+
+
+					half4 FragmentProgram(Interpolators i) : SV_Target {
+						float2 crclSize = _MainTex_TexelSize.xx / _MainTex_TexelSize.xy;
+
+						float2 from = (i.uv - _dspl_from.xy) * crclSize;
+						float2 to = (i.uv - _dspl_to.xy) * crclSize;
+
+						half4 c = Sample(i.uv);
+
+						if (length(from.xy) < _dspl_brush_size)
+							c.a = MIN(c.a / 2, 0.1);
+
+
+						if (length(to.xy) < _dspl_brush_size)
+						{
+							half4 otherColor = Sample(i.uv + _dspl_from.xy - _dspl_to.xy);
+							otherColor.a = otherColor.a -  MIN(otherColor.a / 2, 0.1);
+							return MAdd(c, otherColor);
+						}
+						else
+							return c;
+					}
+					ENDCG
+			}
+
 
 	}
 }
