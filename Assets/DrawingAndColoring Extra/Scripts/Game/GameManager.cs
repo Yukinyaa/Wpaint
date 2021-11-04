@@ -365,7 +365,7 @@ namespace IndieStudio.DrawingAndColoring.Logic
 			currentLine.createPaintLines = currentTool.createPaintLines;
 			
 			//Set the color of the line, if apply color flag in on
-			if(currentToolContent!=null && currentToolContent.applyColor)
+			if(currentToolContent!=null)// && currentToolContent.applyColor)
 				currentLine.SetColor (currentToolContent.gradientColor);
 			
 			if(currentThickness !=null){
@@ -488,7 +488,8 @@ namespace IndieStudio.DrawingAndColoring.Logic
 				sr.sprite = currentToolContent.GetComponent<Image> ().sprite;
 			
 				//Set the first gradient color key for the samp , if apply color flag in on
-				if (currentToolContent.applyColor) {
+				//if (currentToolContent.applyColor)
+                {
 					sr.color = currentToolContent.gradientColor.colorKeys[0].color;
 				}
 

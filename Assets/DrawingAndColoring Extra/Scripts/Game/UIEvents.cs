@@ -130,8 +130,8 @@ namespace IndieStudio.DrawingAndColoring.Logic
 			gameManager.currentTool.DisableSelection ();
 
 			tool.EnableSelection ();
-			gameManager.HideToolContents (gameManager.currentTool);
-			gameManager.currentTool = tool;
+            //gameManager.HideToolContents (gameManager.currentTool);
+            gameManager.currentTool = tool;
 			gameManager.LoadCurrentToolContents ();
 
 			if (tool.contents.Count != 0) {

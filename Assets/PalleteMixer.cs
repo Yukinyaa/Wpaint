@@ -202,7 +202,8 @@ public class PalleteMixer : MonoBehaviour, IBeginDragHandler, IEndDragHandler, I
 
 
         _img.texture = _texture_rendering;
-        
+
+        FindObjectOfType<IndieStudio.DrawingAndColoring.Logic.GameManager>().SetToolColor(CurrentColor);
     }
     bool _addColor = false;
     Vector2 _addColorTo;
@@ -224,7 +225,7 @@ public class PalleteMixer : MonoBehaviour, IBeginDragHandler, IEndDragHandler, I
         return AABBPoint(new int2(0, 0), _sizeInPixel, p);
     }
 
-
+    public static Color CurrentColor { get; private set; }
     public Color PickColor(Vector2 mousePos)
     {
         
@@ -245,6 +246,7 @@ public class PalleteMixer : MonoBehaviour, IBeginDragHandler, IEndDragHandler, I
         //Debug.Log($"{color}  {pixelPos}");
         Destroy(texture);
         UnityEngine.Profiling.Profiler.EndSample();
+        CurrentColor = color;
         return color;
     }
 
