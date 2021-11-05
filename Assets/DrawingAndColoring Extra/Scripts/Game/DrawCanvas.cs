@@ -17,7 +17,7 @@ namespace IndieStudio.DrawingAndColoring.Logic
 		void Awake () {
 			if (instance == null) {
 				instance = this;
-				DontDestroyOnLoad (gameObject);
+				//DontDestroyOnLoad (gameObject);
 			} else {
 				//Set up the render camera of the Canvas
 				Canvas canvas = instance.GetComponent<Canvas> ();

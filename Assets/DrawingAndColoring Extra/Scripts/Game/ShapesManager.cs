@@ -31,7 +31,7 @@ namespace IndieStudio.DrawingAndColoring.Logic
 			{
 				if (instance == null) {
 					instance = this;
-					DontDestroyOnLoad (gameObject);
+					//DontDestroyOnLoad (gameObject);
 				lastSelectedShape = 0;
 				} else {
 					Destroy (gameObject);

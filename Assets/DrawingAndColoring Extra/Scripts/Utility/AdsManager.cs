@@ -65,7 +65,7 @@ namespace IndieStudio.DrawingAndColoring.Utility
 		{
 			if (instance == null) {
 				instance = this;
-				DontDestroyOnLoad (gameObject);
+				//DontDestroyOnLoad (gameObject);
 				if (admob == null)
 					admob = GetComponent<AdMob> ();
 				if (chartBoostAd == null)

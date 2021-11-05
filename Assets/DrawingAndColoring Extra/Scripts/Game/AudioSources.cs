@@ -30,7 +30,7 @@ namespace IndieStudio.DrawingAndColoring.Logic
 				instance = this;
 				audioSources = GetComponents<AudioSource>();
 
-				DontDestroyOnLoad(gameObject);
+				//DontDestroyOnLoad(gameObject);
 			} else {
 				Destroy (gameObject);
 			}
