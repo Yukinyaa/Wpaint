@@ -164,7 +164,9 @@ Shader "Custom/AvgBloom" {
 						float2 crclSize = _MainTex_TexelSize.xx / _MainTex_TexelSize.xy;
 						float2 crclPos = (i.uv - _addColor_pos.xy) * crclSize;
 
-						if (length(crclPos.xy) < 0.05) return _addColor;
+						_addColor.a = 0.1;
+
+						if (length(crclPos.xy) < 0.05)return MAdd(Sample(i.uv), _addColor);
 						else return Sample(i.uv);
 
 						float c = IsInCircle(i.uv, _addColor_pos.xy, _blobSize);
@@ -172,7 +174,7 @@ Shader "Custom/AvgBloom" {
 						_addColor.a = 0.1;
 
 						if (c > 0)
-							return _addColor;
+							return MAdd(Sample(i.uv), _addColor);
 						else return Sample(i.uv);
 						
 					}
@@ -189,7 +191,7 @@ Shader "Custom/AvgBloom" {
 						return r < 0.01 ? MIN(amt, 0.01) : r;
 					}
 					half4 FragmentProgram(Interpolators i) : SV_Target {
-						float rps = 10;//rotation per second
+						float rps = 3;//rotation per second
 						float k = rps*3.14/60;
 						float2x2 rotationMatrix = float2x2(cos(k), -sin(k), sin(k), cos(k));
 

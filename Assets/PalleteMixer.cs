@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -11,7 +11,7 @@ using System;
 using UnityEngine.Profiling;
 
 [RequireComponent(typeof(RawImage))]
-public class PalleteMixer : MonoBehaviour, IBeginDragHandler, IEndDragHandler, IDragHandler, IPointerExitHandler, IPointerDownHandler
+public class PalleteMixer : MonoBehaviour, IPointerUpHandler, IBeginDragHandler, IEndDragHandler, IDragHandler, IPointerExitHandler, IPointerDownHandler
 {
     const int ClipAlphaPass = 0;
     const int BlurPass = 1;
@@ -179,7 +179,7 @@ public class PalleteMixer : MonoBehaviour, IBeginDragHandler, IEndDragHandler, I
         RenderTexture tex_add = GetNewRenderTexture();
 
 
-        mat.SetTexture("_SourceTex", _texture );
+        mat.SetTexture("_SourceTex", _texture);
         Graphics.Blit(alpha, tex_sub, mat, CustomSubtractivePass);
 
         if (justAdded)
@@ -202,16 +202,14 @@ public class PalleteMixer : MonoBehaviour, IBeginDragHandler, IEndDragHandler, I
 
 
         _img.texture = _texture_rendering;
-
-        FindObjectOfType<IndieStudio.DrawingAndColoring.Logic.GameManager>().SetToolColor(CurrentColor);
-
-
+        SetColor();
 
         var pixelPos = MousePosToPixelpos(Input.mousePosition);
 
-        if (Input.GetMouseButton(0))
+        if (_isDragging)
         {
-            FindObjectOfType<IndieStudio.DrawingAndColoring.Logic.GameManager>().SetToolColor(PickColor(Input.mousePosition));
+            PickColor(Input.mousePosition);
+
             var tex_source = _texture;
             var ImgPos = new Vector2(pixelPos.x / (float)_sizeInPixel.x, pixelPos.y / (float)_sizeInPixel.y);
             mat.SetVector("_dspl_from", _lastImgPos);
@@ -234,6 +232,28 @@ public class PalleteMixer : MonoBehaviour, IBeginDragHandler, IEndDragHandler, I
             _texture = tex_dest;
         }
     }
+
+    bool triedFindingManager = false;
+    IndieStudio.DrawingAndColoring.Logic.GameManager _lgm;
+
+    private void SetColor()
+    {
+        if (_lgm != null)
+            _lgm.SetToolColor(CurrentColor);
+        else
+        {
+            if (triedFindingManager == true)
+                return;
+            else
+            {
+                triedFindingManager = true;
+                _lgm = FindObjectOfType<IndieStudio.DrawingAndColoring.Logic.GameManager>();
+
+            }
+        }
+
+    }
+
     bool _addColor = false;
     Vector2 _addColorTo;
     Color _addColorCol;
@@ -304,20 +324,23 @@ public class PalleteMixer : MonoBehaviour, IBeginDragHandler, IEndDragHandler, I
 
     void IPointerDownHandler.OnPointerDown(PointerEventData eventData)
     {
-        FindObjectOfType<IndieStudio.DrawingAndColoring.Logic.GameManager>().SetToolColor(PickColor(eventData.position));
+        _isDragging = true;
     }
 
 
     Vector2 _lastImgPos;
     void IDragHandler.OnDrag(PointerEventData eventData)
     {
-        
-        
     }
-
+        
     void IPointerExitHandler.OnPointerExit(PointerEventData eventData)
     {
         _isDragging = false;
         _lastImgPos = Vector2.zero;
+    }
+
+    void IPointerUpHandler.OnPointerUp(PointerEventData eventData)
+    {
+        _isDragging = false;
     }
 }

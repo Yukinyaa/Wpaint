@@ -15,7 +15,7 @@ public class DrawingCanvasDisplay : MonoBehaviour
         Vector2 size = GetScreenSizeInPixel(rt);
 
         canvas.Initalize((int)size.x, (int)size.y);
-        ri.texture = canvas.GetTexture();
+        ri.material.mainTexture = canvas.GetTexture();
     }
 
 
