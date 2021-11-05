@@ -44,15 +44,16 @@ public class BrushHandler : MonoBehaviour
                 brushImage.color = currentColor;
 
                 tr.material.color = currentColor;
-                Gradient gradient = new Gradient() { 
-                    alphaKeys = new GradientAlphaKey[]{new GradientAlphaKey(1,0), new GradientAlphaKey(1, 1) },
-                    colorKeys = new GradientColorKey[]{new GradientColorKey(currentColor, 0), new GradientColorKey(currentColor, 1)},
+                Gradient gradient = new Gradient()
+                {
+                    alphaKeys = new GradientAlphaKey[] { new GradientAlphaKey(1, 0), new GradientAlphaKey(1, 1) },
+                    colorKeys = new GradientColorKey[] { new GradientColorKey(currentColor, 0), new GradientColorKey(currentColor, 1) },
                     mode = GradientMode.Fixed
                 };
 
                 tr.colorGradient = gradient;
             }
-            else if (raycastResult.Exists(a => a.gameObject.GetComponent<ColorSlot>() != null)) ;
+            else if (raycastResult.Exists(a => a.gameObject.GetComponent<ColorSlot>() != null)) { }
             else
             {
                 tr.enabled = true;

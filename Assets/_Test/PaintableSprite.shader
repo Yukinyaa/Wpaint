@@ -67,7 +67,12 @@ Category {
                 half4 painted = tex2D(_MainTex, i.texcoord);
 
                 fixed intensity = origin.r + origin.g + origin.b;
+                
+                if (painted.a == 0) painted = half4(1, 1, 1, 1);
+
                 fixed sum = painted.r + painted.g + painted.b;
+                
+                
                 
                 half4 col;
                 //Origin Intensity를 Painted의 RGB비율대로 복구
@@ -75,6 +80,8 @@ Category {
                 col.g = (painted.g / sum) * intensity;
                 col.b = (painted.b / sum) * intensity;
                 col.a = 1;
+
+                
                 return col;
             }
             ENDCG

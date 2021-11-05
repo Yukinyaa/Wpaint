@@ -46,47 +46,33 @@ public static class StaticFunc
         return true;
     }
 
-
-    static public IEnumerable<int2> FourD1Point(int2 p)
+    public static void ShuffleExceptFirstAndLast<T>(this List<T> list)
     {
-        yield return new int2(p.x, p.y + 1);
-        yield return new int2(p.x, p.y - 1);
-        yield return new int2(p.x + 1, p.y);
-        yield return new int2(p.x - 1, p.y);
-    }
-    //http://groups.csail.mit.edu/graphics/classes/6.837/F98/Lecture6/circle.html
-    public static IEnumerable<int2> CircleOutlinePoints(int2 Center, int radius)
-    {
-        int x, y, r2;
-
-        r2 = radius * radius;
-        yield return new int2(Center.x, Center.y + radius);
-        yield return new int2(Center.x, Center.y - radius);
-        yield return new int2(Center.x + radius, Center.y);
-        yield return new int2(Center.x - radius, Center.y);
-
-        y = radius;
-        x = 1;
-        y = (int)(Mathf.Sqrt(r2 - 1) + 0.5);
-        while (x < y)
+        System.Random rnd = new System.Random();
+        for (int i = 2; i < list.Count - 1; i++)
         {
-            yield return new int2(Center.x + x, Center.y + y);
-            yield return new int2(Center.x + x, Center.y - y);
-            yield return new int2(Center.x - x, Center.y + y);
-            yield return new int2(Center.x - x, Center.y - y);
-            yield return new int2(Center.x + y, Center.y + x);
-            yield return new int2(Center.x + y, Center.y - x);
-            yield return new int2(Center.x - y, Center.y + x);
-            yield return new int2(Center.x - y, Center.y - x);
-            x += 1;
-            y = (int)(Math.Sqrt(r2 - x * x) + 0.5);
-        }
-        if (x == y)
-        {
-            yield return new int2(Center.x + x, Center.y + y);
-            yield return new int2(Center.x + x, Center.y - y);
-            yield return new int2(Center.x - x, Center.y + y);
-            yield return new int2(Center.x - x, Center.y - y);
+            int j = rnd.Next(i - 2) + 1;
+            T tmp = list[j];
+            list[j] = list[i];
+            list[i] = tmp;
         }
     }
+
+    public static IList<T> Shuffle<T>(this IList<T> list, int size)
+    {
+        System.Random rnd = new System.Random();
+        var res = new T[size];
+
+        res[0] = list[0];
+        for (int i = 1; i < size; i++)
+        {
+            int j = rnd.Next(i);
+            res[i] = res[j];
+            res[j] = list[i];
+        }
+        return res;
+    }
+
+    public static IList<T> Shuffle<T>(this IList<T> list)
+    { return list.Shuffle(list.Count); }
 }
