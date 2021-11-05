@@ -189,7 +189,8 @@ Shader "Custom/AvgBloom" {
 						return r < 0.01 ? MIN(amt, 0.01) : r;
 					}
 					half4 FragmentProgram(Interpolators i) : SV_Target {
-						float k = 0.314/60;
+						float rps = 10;//rotation per second
+						float k = rps*3.14/60;
 						float2x2 rotationMatrix = float2x2(cos(k), -sin(k), sin(k), cos(k));
 
 						float2 crclSize = _MainTex_TexelSize.xx / _MainTex_TexelSize.xy;

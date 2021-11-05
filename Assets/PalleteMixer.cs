@@ -147,7 +147,7 @@ public class PalleteMixer : MonoBehaviour, IBeginDragHandler, IEndDragHandler, I
             Debug.Log(_addColorTo);
 
             mat.SetFloat("_blobSize", 0.1f);
-            mat.SetFloat("_dspl_brush_size", 0.1f);
+            mat.SetFloat("_dspl_brush_size", 0.05f);
 
 
             RenderTexture tex_dest = GetNewRenderTexture();
@@ -204,6 +204,35 @@ public class PalleteMixer : MonoBehaviour, IBeginDragHandler, IEndDragHandler, I
         _img.texture = _texture_rendering;
 
         FindObjectOfType<IndieStudio.DrawingAndColoring.Logic.GameManager>().SetToolColor(CurrentColor);
+
+
+
+        var pixelPos = MousePosToPixelpos(Input.mousePosition);
+
+        if (Input.GetMouseButton(0))
+        {
+            FindObjectOfType<IndieStudio.DrawingAndColoring.Logic.GameManager>().SetToolColor(PickColor(Input.mousePosition));
+            var tex_source = _texture;
+            var ImgPos = new Vector2(pixelPos.x / (float)_sizeInPixel.x, pixelPos.y / (float)_sizeInPixel.y);
+            mat.SetVector("_dspl_from", _lastImgPos);
+            mat.SetVector("_dspl_to", ImgPos);
+            if (_lastImgPos == Vector2.zero)
+            {
+                _lastImgPos = ImgPos;
+                return;
+            }
+
+
+            _lastImgPos = ImgPos;
+
+            RenderTexture tex_dest = GetNewRenderTexture();
+
+            Graphics.Blit(tex_source, tex_dest, mat, 6);
+            tex_source.ReleaseTemp();
+            _addColor = false;
+
+            _texture = tex_dest;
+        }
     }
     bool _addColor = false;
     Vector2 _addColorTo;
@@ -282,35 +311,8 @@ public class PalleteMixer : MonoBehaviour, IBeginDragHandler, IEndDragHandler, I
     Vector2 _lastImgPos;
     void IDragHandler.OnDrag(PointerEventData eventData)
     {
-        FindObjectOfType<IndieStudio.DrawingAndColoring.Logic.GameManager>().SetToolColor(PickColor(eventData.position));
         
-        var pixelPos = MousePosToPixelpos(Input.mousePosition);
         
-
-        if (_isDragging)
-        {
-            
-            var tex_source = _texture;
-            var ImgPos = new Vector2(pixelPos.x / (float)_sizeInPixel.x, pixelPos.y / (float)_sizeInPixel.y);
-            mat.SetVector("_dspl_from", _lastImgPos);
-            mat.SetVector("_dspl_to", ImgPos);
-            if (_lastImgPos == Vector2.zero)
-            {
-                _lastImgPos = ImgPos;
-                return;
-            }
-            
-
-            _lastImgPos = ImgPos;
-
-            RenderTexture tex_dest = GetNewRenderTexture();
-
-            Graphics.Blit(tex_source, tex_dest, mat, 6);
-            tex_source.ReleaseTemp();
-            _addColor = false;
-
-            _texture = tex_dest;
-        }
     }
 
     void IPointerExitHandler.OnPointerExit(PointerEventData eventData)
