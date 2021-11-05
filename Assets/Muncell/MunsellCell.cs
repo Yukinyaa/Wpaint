@@ -12,10 +12,12 @@ public class MunsellCell: MonoBehaviour, IDragHandler, IEndDragHandler
     public Image itemImage;
     public int actualIndex;
     public bool IsDragging { get; private set; } = false;
-
+    public bool gameFinished = false;
 
     [HideInInspector]
     public MunsellTestManager manager;
+
+    [HideInInspector]
 
 
     public override string ToString()
@@ -40,6 +42,7 @@ public class MunsellCell: MonoBehaviour, IDragHandler, IEndDragHandler
     }
     public void OnDrag(PointerEventData data)
     {
+        if (gameFinished) return;
         IsDragging = true;
         RectTransformUtility.ScreenPointToLocalPointInRectangle(itemImage.transform.parent.transform as RectTransform, Input.mousePosition, Camera.main, out Vector2 point);
         itemImage.transform.localPosition = point;

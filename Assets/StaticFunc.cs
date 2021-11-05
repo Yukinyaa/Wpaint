@@ -73,6 +73,16 @@ public static class StaticFunc
         return res;
     }
 
+    public static T GetRandom<T>(this IList<T> list)
+    {
+        System.Random rnd = new System.Random();
+        
+        return list[rnd.Next(list.Count - 1)];
+    }
+
+
     public static IList<T> Shuffle<T>(this IList<T> list)
     { return list.Shuffle(list.Count); }
+
+
 }
