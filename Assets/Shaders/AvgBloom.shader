@@ -191,10 +191,10 @@ Shader "Custom/AvgBloom" {
 						return r < 0.01 ? MIN(amt, 0.01) : r;
 					}
 					half4 FragmentProgram(Interpolators i) : SV_Target {
-						float rps = 3;//rotation per second
-						float k = rps*3.14/60;
-						float2x2 rotationMatrix = float2x2(cos(k), -sin(k), sin(k), cos(k));
-
+						//float rps = 3;//rotation per second
+						//float k = rps*3.14/60;
+						//float2x2 rotationMatrix = float2x2(cos(k), -sin(k), sin(k), cos(k));
+						float2x2 rotationMatrix = float2x2(1, 0, 0, 1);
 						float2 crclSize = _MainTex_TexelSize.xx / _MainTex_TexelSize.xy;
 
 						float2 from = (i.uv - _dspl_from.xy) * crclSize;

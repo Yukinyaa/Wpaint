@@ -342,5 +342,6 @@ public class PalleteMixer : MonoBehaviour, IPointerUpHandler, IBeginDragHandler,
     void IPointerUpHandler.OnPointerUp(PointerEventData eventData)
     {
         _isDragging = false;
+        _lastImgPos = Vector2.zero;
     }
 }

@@ -41,6 +41,7 @@ public class BrushHandler : MonoBehaviour
             if (palleteMixer != null)
             {
                 currentColor = palleteMixer.PickColor(mousepos);
+                currentColor.a = 1;
                 brushImage.color = currentColor;
 
                 tr.material.color = currentColor;
