@@ -43,7 +43,7 @@ public class MunsellTestManager : MonoBehaviour
     /// <summary>
     /// °× ³¡³µÀ»¶§ ¼¿ µå·¡±× ±â´É Àá±Ý
     /// </summary>
-    public void FinishGame()
+    public void LockCells()
     {
         foreach (var cell in _cells)
             cell.gameFinished = true;

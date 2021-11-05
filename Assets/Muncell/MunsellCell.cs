@@ -9,10 +9,10 @@ using UnityEngine.EventSystems;
 
 public class MunsellCell: MonoBehaviour, IDragHandler, IEndDragHandler
 {
-    public Image itemImage;
-    public int actualIndex;
-    public bool IsDragging { get; private set; } = false;
-    public bool gameFinished = false;
+    public Image itemImage; // 실제로 보이는 이미지.
+    public int actualIndex; // 제대로 정렬된거 기준
+    public bool IsDragging { get; private set; } = false; // 드래그 확인용, 드래그중이면 점수로 안쳐줌
+    public bool gameFinished = false; // 겜 끝나면 드래그 잠그기
 
     [HideInInspector]
     public MunsellTestManager manager;
@@ -20,17 +20,14 @@ public class MunsellCell: MonoBehaviour, IDragHandler, IEndDragHandler
     [HideInInspector]
 
 
-    public override string ToString()
+    public override string ToString() // 디버그용 
     {
-        return $"{actualIndex}:{itemImage.color}";
+        return $"{actualIndex}:{itemImage.color}"; 
     }
-    private void OnDestroy()
-    {
-        DestroyImmediate(itemImage.gameObject);
-    }
+
     private void Update()
     {
-        if (!IsDragging)
+        if (!IsDragging) // 드래그중이 아니라면, child를 끌고옴
         {
             Vector3 delta = this.transform.position - itemImage.transform.position;
             if (delta.sqrMagnitude < 0.01f)
@@ -40,7 +37,8 @@ public class MunsellCell: MonoBehaviour, IDragHandler, IEndDragHandler
         }
         
     }
-    public void OnDrag(PointerEventData data)
+
+    public void OnDrag(PointerEventData data) // 차일드만 마우스 따라가기
     {
         if (gameFinished) return;
         IsDragging = true;
