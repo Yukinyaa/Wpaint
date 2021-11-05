@@ -164,7 +164,7 @@ Shader "Custom/AvgBloom" {
 						float2 crclSize = _MainTex_TexelSize.xx / _MainTex_TexelSize.xy;
 						float2 crclPos = (i.uv - _addColor_pos.xy) * crclSize;
 
-						if (length(crclPos.xy) < 0.1) return _addColor;
+						if (length(crclPos.xy) < 0.05) return _addColor;
 						else return Sample(i.uv);
 
 						float c = IsInCircle(i.uv, _addColor_pos.xy, _blobSize);
