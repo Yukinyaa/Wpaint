@@ -24,23 +24,12 @@ public class DrawingCanvas : MonoBehaviour
         cam.targetTexture = texture;
         scale = new Vector2(width, height);
     }
-    
-    //Before any objects are drawn
-    void OnPreCull___()
+    public void ResetCanvas()
     {
-        //Find and store the attached camera if we don't already have it cached
-        if (!cam)
-            cam = GetComponent<Camera>();
-
-        //These functions create projection matrices for both orthographic and perspective projection. Choose between them based on the camera's settings
-        Matrix4x4 proj;
-        if (cam.orthographic)
-            proj = Matrix4x4.Ortho(-cam.orthographicSize * scale.x, cam.orthographicSize * scale.x, -cam.orthographicSize * scale.y, cam.orthographicSize * scale.y, cam.nearClipPlane, cam.farClipPlane);
-        else
-            proj = Matrix4x4.Perspective(cam.fieldOfView, scale.x / scale.y, cam.nearClipPlane, cam.farClipPlane);
-
-        //Set the camera's projection matrix
-        cam.projectionMatrix = proj;
+        cam.clearFlags = CameraClearFlags.Color;
+        cam.backgroundColor = Color.clear;
+        cam.Render();
+        cam.clearFlags = CameraClearFlags.Nothing;
     }
 
     internal Texture GetTexture()

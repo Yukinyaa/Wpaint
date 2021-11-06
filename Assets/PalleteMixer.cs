@@ -129,6 +129,12 @@ public class PalleteMixer : MonoBehaviour, IPointerUpHandler, IBeginDragHandler,
         DBGIMG.texture = fuck;
     }
 
+    public void ResetPallete()
+    {
+        _texture.ReleaseTemp();
+        _texture = GetNewRenderTexture();
+    }
+
     public void LateUpdate()
     {
         SpriteRenderer r;
