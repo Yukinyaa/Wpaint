@@ -17,6 +17,9 @@ public class BrushHandler : MonoBehaviour
     Image brushImage;
     TrailRenderer tr;
 
+
+    [SerializeField] private Image _brushPreviewObject;
+
     bool isDrawing;
     Color currentColor;
 
@@ -43,8 +46,9 @@ public class BrushHandler : MonoBehaviour
                 currentColor = palleteMixer.PickColor(mousepos);
                 currentColor.a = 1;
                 brushImage.color = currentColor;
+                _brushPreviewObject.color = currentColor;
 
-                tr.material.color = currentColor;
+                //tr.material.color = currentColor;
                 Gradient gradient = new Gradient()
                 {
                     alphaKeys = new GradientAlphaKey[] { new GradientAlphaKey(1, 0), new GradientAlphaKey(1, 1) },

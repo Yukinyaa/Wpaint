@@ -79,6 +79,7 @@ public class MunsellTestManager : MonoBehaviour
             cell.itemImage.color = Color.Lerp(startColor, endColor, i / (cellCount - 1f));
             cell.actualIndex = i;
             cell.manager = this;
+            cell.Init();
         }
 
         // 정렬 (이미지까지 부모에 맞게 딱 가도록)
@@ -163,6 +164,18 @@ public class MunsellTestManager : MonoBehaviour
             cellRT.anchorMax = new Vector2((_cellWidth + cellMargin) * i + _cellWidth, 1);
             cellRT.anchoredPosition = Vector2.zero;
             cellRT.sizeDelta = Vector2.zero;
+        }
+    }
+
+    //테스트 종료 후, 서순 까는 연출 시작
+    public void OnTestEnd() {
+        StartCoroutine(EndRoutine());
+
+        IEnumerator EndRoutine() {
+            for(int i = 0; i < _cells.Count; i++) {
+                _cells[i].PlayAnim();
+                yield return new WaitForSeconds(0.1f);
+            }
         }
     }
 }

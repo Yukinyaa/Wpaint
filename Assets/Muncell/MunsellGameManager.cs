@@ -86,6 +86,8 @@ public class MunsellGameManager : MonoBehaviour
             _finishedTime = _remainingTime;
             _remainingTime = 0;
             _scoretext.text = $"Á¡¼ö: {score}/{maxScore}({score * 100f / maxScore:00}%)";
+
+            _testManager.OnTestEnd();
         }
 
         if (_remainingTime <= 0)

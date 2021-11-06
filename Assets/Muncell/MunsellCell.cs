@@ -9,6 +9,8 @@ using UnityEngine.EventSystems;
 
 public class MunsellCell: MonoBehaviour, IDragHandler, IEndDragHandler
 {
+    [SerializeField] private Text _refText;
+    [SerializeField] private Animator _refAnimator;
     public Image itemImage; // 실제로 보이는 이미지.
     public int actualIndex; // 제대로 정렬된거 기준
     public bool IsDragging { get; private set; } = false; // 드래그 확인용, 드래그중이면 점수로 안쳐줌
@@ -17,7 +19,9 @@ public class MunsellCell: MonoBehaviour, IDragHandler, IEndDragHandler
     [HideInInspector]
     public MunsellTestManager manager;
 
-    [HideInInspector]
+    public void Init() {
+        _refText.text = (actualIndex + 1).ToString();
+    }
 
 
     public override string ToString() // 디버그용 
@@ -70,4 +74,8 @@ public class MunsellCell: MonoBehaviour, IDragHandler, IEndDragHandler
         return results;
     }
     
+
+    public void PlayAnim() {
+        _refAnimator.SetTrigger("Open");
+    }
 }

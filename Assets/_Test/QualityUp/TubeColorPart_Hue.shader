@@ -1,7 +1,6 @@
-Shader "Custom/PaintableSprite" {
+Shader "Custom/TubeColorPart" {
 Properties {
     _MainTex ("Texture", 2D) = "white" {}
-    _OriginalTex ("Original", 2D) = "white" {}
 }
 
 Category {
@@ -24,7 +23,6 @@ Category {
             #include "UnityCG.cginc"
 
             sampler2D _MainTex;
-            sampler2D _OriginalTex;
 
             struct appdata_t {
                 float4 vertex : POSITION;
@@ -63,16 +61,12 @@ Category {
 
             fixed4 frag (v2f i) : SV_Target
             {
-                half4 origin = tex2D(_OriginalTex, i.texcoord);
-                half4 painted = tex2D(_MainTex, i.texcoord);
+                half4 origin = tex2D(_MainTex, i.texcoord);
 
                 fixed intensity = origin.r + origin.g + origin.b;
-                if(intensity == 0) {intensity = 0.01f;}
                 
-                //if (painted.a == 0) painted = half4(1, 1, 1, 1);
-                painted.rgb = 1 - ((1 - painted.rgb) * painted.a);
 
-                fixed sum = painted.r + painted.g + painted.b;
+                fixed sum = i.color.r + i.color.g + i.color.b;
                 
                 
                 
@@ -80,12 +74,12 @@ Category {
                 //Origin Intensity를 Painted의 RGB비율대로 복구
                 
 
-                col.r = (painted.r / sum) * intensity;
-                col.g = (painted.g / sum) * intensity;
-                col.b = (painted.b / sum) * intensity;
+                col.r = (i.color.r / sum) * intensity;
+                col.g = (i.color.g / sum) * intensity;
+                col.b = (i.color.b / sum) * intensity;
                 col.rgb *= (sum + intensity) / (intensity + intensity);
-                col.a = 1;
-
+                col.a = origin.a * i.color.a;
+                col.rgb *= col.a;
                 
                 return col;
             }

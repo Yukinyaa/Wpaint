@@ -12,7 +12,7 @@ using UnityEngine.EventSystems;
 public class ColorSlot : MonoBehaviour, IDragHandler, IEndDragHandler, IPointerClickHandler, IPointerExitHandler, IPointerEnterHandler
 {
     [SerializeField]
-    Image backgroundImage;
+    Transform dragObj;
     [SerializeField]
     Image itemImage;
     [SerializeField]
@@ -36,9 +36,9 @@ public class ColorSlot : MonoBehaviour, IDragHandler, IEndDragHandler, IPointerC
 
     public void OnDrag(PointerEventData data)
     {
-        itemImage.transform.SetParent(itemImage.canvasRenderer.transform);
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(itemImage.transform.parent.transform as RectTransform, Input.mousePosition, Camera.main, out Vector2 point);
-        itemImage.transform.localPosition = point;
+        dragObj.SetParent(itemImage.canvasRenderer.transform);
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(dragObj.parent.transform as RectTransform, Input.mousePosition, Camera.main, out Vector2 point);
+        dragObj.localPosition = point;
     }
 
     public void OnEndDrag(PointerEventData data)
@@ -63,8 +63,8 @@ public class ColorSlot : MonoBehaviour, IDragHandler, IEndDragHandler, IPointerC
 
         void ReturnImageToMyChild()
         {
-            itemImage.transform.SetParent(this.transform);
-            itemImage.transform.localPosition = Vector3.zero;
+            dragObj.SetParent(this.transform);
+            dragObj.localPosition = Vector3.zero;
         }
     }
 
