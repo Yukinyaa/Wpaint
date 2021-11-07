@@ -56,11 +56,11 @@ public class MunsellGameManager : MonoBehaviour
                 _testManager.cellCount = 7;
                 break;
             case Difficulty.Normal:
-                _remainingTime = 30;
+                _remainingTime = 20;
                 _testManager.cellCount = 10;
                 break;
             case Difficulty.Hard:
-                _remainingTime = 60;
+                _remainingTime = 30;
                 _testManager.cellCount = 15;
                 break;
         }
@@ -96,6 +96,8 @@ public class MunsellGameManager : MonoBehaviour
             {
                 _isFinished = true;
                 _testManager.LockCells();
+
+                _testManager.OnTestEnd();
             }
             
             _timetext.text = $"{_finishedTime:00.000}";

@@ -128,6 +128,8 @@ namespace IndieStudio.DrawingAndColoring.Logic
 		/// </summary>
 		public RawImage CursorZoomOutput;
 
+		[SerializeField] private Image _currentColor;
+
 		void Awake(){
 
 			uiEvents = GameObject.FindObjectOfType<UIEvents> ();
@@ -660,6 +662,7 @@ namespace IndieStudio.DrawingAndColoring.Logic
 						currentThickness.EnableSelection();
 					}
 				}
+				_currentColor.color = thicknessSizeColor;
 			}
 		}
 
