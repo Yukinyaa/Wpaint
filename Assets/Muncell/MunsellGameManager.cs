@@ -21,7 +21,10 @@ public class MunsellGameManager : MonoBehaviour
     static List<Tuple<Color, Color>> colors;
 
 
-    
+    private void Awake() {
+        Input.multiTouchEnabled = false;
+    }
+
     void Start()
     {
         colors = new List<Tuple<Color, Color>> {// ㄹㅇ 먼셀테스트 색상임

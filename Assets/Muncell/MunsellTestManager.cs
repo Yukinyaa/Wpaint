@@ -1,3 +1,4 @@
+using DG.Tweening;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -17,9 +18,12 @@ public class MunsellTestManager : MonoBehaviour
     [SerializeField]
     public float cellMargin;
 
+    [SerializeField] private Text _txtNotice;
+
     float _cellWidth;
 
     RectTransform RT => transform as RectTransform;
+
 
     /// <summary>
     /// score / maxScore 점수 알려줌
@@ -93,7 +97,9 @@ public class MunsellTestManager : MonoBehaviour
 
 
         // 첫번째, 마지막 셀은 드래그 안되게 그냥 꺼버리기
+        _cells.First().gameObject.AddComponent<Munsell_FixedCell>().Init(ShowNotice);
         _cells.First().enabled = false;
+        _cells.Last().gameObject.AddComponent<Munsell_FixedCell>().Init(ShowNotice);
         _cells.Last().enabled = false;
     }
 
@@ -176,6 +182,25 @@ public class MunsellTestManager : MonoBehaviour
                 _cells[i].PlayAnim();
                 yield return new WaitForSeconds(0.1f);
             }
+        }
+    }
+
+    private Coroutine _noticeRoutine;
+    public void ShowNotice() {
+        Color targetColor1 = _txtNotice.color;
+        Color targetColor2 = targetColor1;
+        targetColor1.a = 0;
+        targetColor2.a = 1;
+
+        if (_noticeRoutine != null) {
+            StopCoroutine(_noticeRoutine);
+        }
+        _noticeRoutine = StartCoroutine(NoticeShowRoutine());
+
+        IEnumerator NoticeShowRoutine(){
+            _txtNotice.DOColor(targetColor2, 0.5f);
+            yield return new WaitForSeconds(1f);
+            _txtNotice.DOColor(targetColor1, 0.5f);
         }
     }
 }

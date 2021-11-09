@@ -33,6 +33,15 @@ public class BrushHandler : MonoBehaviour
     }
 
 
+    //캔버스 리셋하면 튜토리얼 다시
+    public void OnClickReset() {
+        ResetTutorialFlag();
+        if (_tutorialFlag_NeedPalleteTuto) {
+            _tutorialFlag_NeedPalleteTuto = false;
+            _txtPalleteTuto.On();
+        }
+    }
+
     public void Start()
     {
         tr = brushImage.GetComponent<TrailRenderer>();
@@ -44,10 +53,16 @@ public class BrushHandler : MonoBehaviour
         }
     }
 
+    //안드로이드만
+    private Vector3 lastTouchPos;
+    private int lastTouchCount = 0;
     void Update()
     {
-        var mousepos = Input.mousePosition;
 
+
+
+        
+        Vector3 mousepos = Input.mousePosition;
         if (Input.GetMouseButtonDown(0)) {
 
             var raycastResult = RaycastMouse();
@@ -76,8 +91,45 @@ public class BrushHandler : MonoBehaviour
                 }
             }
         }
-
         RectTransformUtility.ScreenPointToWorldPointInRectangle(drawingCanvasDisplay.transform as RectTransform, mousepos, Camera.main, out Vector3 worldPoint);
+  
+//안드용
+/*
+        if (Input.touchCount > 0) {
+            lastTouchPos = Input.GetTouch(0).position;
+
+            var raycastResult = RaycastMouse();
+            var palleteMixer = GetFirstTypeFromArray<PalleteMixer>(raycastResult);
+
+            if (palleteMixer != null) {
+                SetColor(palleteMixer.PickColor(lastTouchPos));
+            } else if (raycastResult.Exists(a => a.gameObject.GetComponent<ColorSlot>() != null)) { } else {
+                tr.enabled = true;
+                isDrawing = true;
+            }
+            lastTouchCount = 1;
+
+        } else if (Input.touchCount == 0 && lastTouchCount == 1) {
+            lastTouchCount = 0;
+
+            tr.enabled = false;
+            isDrawing = false;
+
+            var raycastResult = RaycastMouse();
+            var palleteMixer = GetFirstTypeFromArray<PalleteMixer>(raycastResult);
+            if (palleteMixer != null) {
+                SetColor(palleteMixer.PickColor(lastTouchPos));
+
+                _txtPalleteTuto.Off();
+                if (_tutorialFlag_NeedPaintTuto) {
+                    _tutorialFlag_NeedPaintTuto = false;
+                    _txtPaintTuto.On();
+                }
+            }
+        }
+        RectTransformUtility.ScreenPointToWorldPointInRectangle(drawingCanvasDisplay.transform as RectTransform, lastTouchPos, Camera.main, out Vector3 worldPoint);
+*/
+
         Vector3 localPoint = drawingCanvasDisplay.transform.InverseTransformPoint(worldPoint);
         if (isDrawing)
         {
@@ -126,6 +178,14 @@ public class BrushHandler : MonoBehaviour
         };
 
         pointerData.position = Input.mousePosition;
+
+        //안드용
+        /*
+        if (Input.touchCount > 0) {
+            pointerData.position = Input.GetTouch(0).position;
+        }*/
+
+
 
         List<RaycastResult> results = new List<RaycastResult>();
         EventSystem.current.RaycastAll(pointerData, results);
