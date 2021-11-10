@@ -72,6 +72,7 @@ public class BrushHandler : MonoBehaviour
                 SetColor(palleteMixer.PickColor(mousepos));
             } else if (raycastResult.Exists(a => a.gameObject.GetComponent<ColorSlot>() != null)) { } else {
                 tr.enabled = true;
+                tr.Clear();
                 isDrawing = true;
             }
 
