@@ -71,14 +71,16 @@ public class BrushHandler : MonoBehaviour
             if (palleteMixer != null) {
                 SetColor(palleteMixer.PickColor(mousepos));
             } else if (raycastResult.Exists(a => a.gameObject.GetComponent<ColorSlot>() != null)) { } else {
-                tr.enabled = true;
                 tr.Clear();
+                tr.enabled = true;
                 isDrawing = true;
+                brushImage.enabled = true;
             }
 
         } else if (Input.GetMouseButtonUp(0)) {
             tr.enabled = false;
             isDrawing = false;
+            brushImage.enabled = false;
 
             var raycastResult = RaycastMouse();
             var palleteMixer = GetFirstTypeFromArray<PalleteMixer>(raycastResult);

@@ -73,6 +73,7 @@ Category {
                 painted.rgb = 1 - ((1 - painted.rgb) * painted.a);
 
                 fixed sum = painted.r + painted.g + painted.b;
+                if(sum == 0) {intensity = 0.01f;}
                 
                 
                 

@@ -70,10 +70,9 @@ Category {
                     return original;
                 }
 
-                painted.rgb = 1 - ((1 - painted.rgb) * painted.a);
+                //painted.rgb = 1 - ((1 - painted.rgb) * painted.a);
+                painted.rgb = painted.rgb * painted.a + original.rgb * (1 - painted.a);
 
-                
-                
                 return painted;
             }
             ENDCG
